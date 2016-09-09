@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {browserHistory} from 'react-router';
+import {calcPrice, calcTime} from '../helpers.js';
 
 export default class AuctionItem extends Component {
   constructor (props) {
@@ -20,7 +21,7 @@ export default class AuctionItem extends Component {
     this.getItemBids();
     this.getItem();
     this.setState({
-      currentPrice: '$  ' + this.calcPrice().toFixed(2),
+      currentPrice: this.calcPrice().toFixed(2),
       timeRemaining: this.calcTime()
     });
   }
@@ -41,10 +42,26 @@ export default class AuctionItem extends Component {
   }
 
   calcPrice () {
+    var thisItem = this.state.item;
+    return calcPrice(thisItem.startPrice, thisItem.endPrice, thisItem.startDate, thisItem.endDate);
+    // var cal = ((this.state.item.startPrice - this.state.item.endPrice) /
+    // ((Date.parse(this.state.item.endDate)) - Date.parse(this.state.item.startDate))) * (Date.parse(this.state.item.endDate) - Date.now());
+    // return cal;
+  }
 
-    var cal = ((this.state.item.startPrice - this.state.item.endPrice) /
-    ((Date.parse(this.state.item.endDate)) - Date.parse(this.state.item.startDate))) * (Date.parse(this.state.item.endDate) - Date.now());
-    return cal;
+  calcTime () {
+    return calcTime(this.state.item.endDate);
+    // var duration = Date.parse(this.state.item.endDate) - Date.now();
+    // var seconds = parseInt((duration / 1000) % 60);
+    // var minutes = parseInt((duration / (1000 * 60)) % 60);
+    // var hours = parseInt((duration / (1000 * 60 * 60)) % 24);
+    // var days = parseInt(((duration) / (1000 * 60 * 60 * 24)) % 365);
+
+    // days = (days < 10) ? '0' + days : days;
+    // hours = (hours < 10) ? '0' + hours : hours;
+    // minutes = (minutes < 10) ? '0' + minutes : minutes;
+    // seconds = (seconds < 10) ? '0' + seconds : seconds;
+    // return days + ' days  ' + hours + ':' + minutes + ':' + seconds + ' hours';
   }
 
   getItem () {
@@ -75,19 +92,6 @@ export default class AuctionItem extends Component {
 
   }
 
-  calcTime () {
-    var duration = Date.parse(this.state.item.endDate) - Date.now();
-    var seconds = parseInt((duration / 1000) % 60);
-    var minutes = parseInt((duration / (1000 * 60)) % 60);
-    var hours = parseInt((duration / (1000 * 60 * 60)) % 24);
-    var days = parseInt(((duration) / (1000 * 60 * 60 * 24)) % 365);
-
-    days = (days < 10) ? '0' + days : days;
-    hours = (hours < 10) ? '0' + hours : hours;
-    minutes = (minutes < 10) ? '0' + minutes : minutes;
-    seconds = (seconds < 10) ? '0' + seconds : seconds;
-    return days + ' days  ' + hours + ':' + minutes + ':' + seconds + ' hours';
-  }
 
   sendItemBid() {
     if (this.state.bids === undefined || $('#bid').val() > this.state.bids.price + 1 && $('#bid').val() !== '') {
@@ -114,7 +118,6 @@ export default class AuctionItem extends Component {
     }
   }
 
-
   render () {
     var startDate = new Date(Date.parse(this.state.item.startDate));
     var startDateFormatted = startDate.getMonth() + '/' + startDate.getDate() + '/' + startDate.getFullYear() + '  ' + startDate.getHours() % 12 + ':' + ((startDate.getMinutes() < 10) ? '0' + startDate.getMinutes() : startDate.getMinutes()) + (startDate.getHours() > 12 ? ' PM' : ' AM');
@@ -133,8 +136,8 @@ export default class AuctionItem extends Component {
         <img src={this.state.item.picture}></img>
         <div>Start Date: {startDate.toLocaleDateString() + ' ' + startDate.toLocaleTimeString()}</div>
         <div>End Date: {endDate.toLocaleDateString() + ' ' + endDate.toLocaleTimeString()}</div>
-        <div>Time Remaining: {this.state.timeRemaining}</div>
-        <div> Current Price: {this.state.currentPrice} </div>
+        <div>Time Remaining: {isNaN(this.state.timeRemaining) ? '...' : this.state.timeRemaining}</div>
+        <div> Current Price: $ {isNaN(this.state.currentPrice) ? '...' : this.state.currentPrice} </div>
         <div> Highest Bid:{this.state.bids !== undefined ? '$ ' + this.state.bids.price : ' No Bids' }</div>
         <form id="bid-form" onSubmit={this.sendItemBid}>
           <div>Enter Bid <input id="bid" type="number" step = "0.01" placeholder="Enter a bid"></input> </div>

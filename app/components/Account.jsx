@@ -196,7 +196,7 @@ export default class UserSetting extends Component {
       <div className="row">
         <div className="row">
           <div className="input-group-md">
-            <textarea className="form-control about-me-description" name="aboutMe" value={this.state.aboutMe + ' ...'} onChange={ this.handleChangeAboutMe }/>
+            <textarea className="form-control about-me-description" name="aboutMe" value={this.state.aboutMe} onChange={ this.handleChangeAboutMe }/>
           </div>
         </div>
         <div className="row">

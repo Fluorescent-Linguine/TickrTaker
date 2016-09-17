@@ -195,8 +195,8 @@ export default class UserSetting extends Component {
     /* EDITING */
       <div className="row">
         <div className="row">
-          <div className="input-group input-group-md edit-about-me">
-            <textarea className="form-control about-me" name="aboutMe" value={this.state.aboutMe} onChange={ this.handleChangeAboutMe }/>
+          <div className="input-group-md">
+            <textarea className="form-control about-me-description" name="aboutMe" value={this.state.aboutMe + ' ...'} onChange={ this.handleChangeAboutMe }/>
           </div>
         </div>
         <div className="row">
@@ -207,14 +207,15 @@ export default class UserSetting extends Component {
       </div> : 
       /* NOT EDITING */
       <div className="row">
+
+        <div className="row">
+            <p className="about-me-description">{this.state.aboutMe}</p>
+        </div>
+
         <div className="row">
           <button type="button" className="btn btn-primary btn-sm edit" aria-label="Left Align" onClick={ () => this.editProfile() } >
             <span aria-hidden="true">edit about me</span>
           </button>
-        </div>
-
-        <div className="row">
-            <p className="about-me">{this.state.aboutMe}</p>
         </div>
 
       </div>
@@ -226,7 +227,12 @@ export default class UserSetting extends Component {
               <img src={this.state.photo} alt="Oops! Can't find your photo" className="img-responsive profile-image"/>
           </div>
           <div className="col-md-4">
-            <div className="row">
+          
+            <Link to={'/profile/' + this.state.id}>
+              <h3 className="account-name">{this.state.firstName} {this.state.lastName}</h3>
+            </Link>
+
+            <div className="row settings">
               <h4 className="">Settings</h4>
                 <div>
                   <Link to='/account' onClick={this.handleToggle.bind(this, 'email')}><h6>Change Email</h6></Link>
@@ -245,17 +251,8 @@ export default class UserSetting extends Component {
           </div>
         </div>  
 
-        <div className="row settings">
+        <div className="row account">
           <div className="col-md-4">
-            
-          </div>
-
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <Link to={'/profile/' + this.state.id}>
-              <h4 className="account-name">{this.state.firstName} {this.state.lastName}</h4>
-            </Link>
             {this.state.starRating ? (<UserRating editable={'false'} starRating={ starRating }/>) : <div></div>}
           </div>
           <div className="col-md-8">

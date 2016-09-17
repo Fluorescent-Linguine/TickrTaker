@@ -8,13 +8,11 @@ export default class MyDashboard extends Component {
   constructor(props) {
     super(props);
     // view will be 'sales' or 'bids'
-    console.log(this.props)
     this.state = {
       view: null,
       activeItems: [],
       expiredItems: []
     };
-
   }
 
   getSalesItems () {
@@ -23,14 +21,45 @@ export default class MyDashboard extends Component {
       method: 'GET',
       url: '/api/mysales',
       success: function(items) {
-        console.log('getting sales items')
+        console.log('getting sales items', items);
         var activeItems = items.filter(function(e) {
           return e.valid === true;
         })
-        var expiredItems = items.filter(function(e) {
+        var newExpiredItems = items.filter(function(e) {
           return e.valid === false;
         })
-        context.setState({activeItems: activeItems, expiredItems: expiredItems})
+
+        if (newExpiredItems.length === 0) {
+          context.setState({
+            activeItems: activeItems
+          })
+        }
+
+        var copy = context.state.expiredItems.slice();
+
+        var removeItem = function (index, array) {
+          var currentItem = array[index];
+          array[index] = array[array.length-1];
+          array[array.length-1] = currentItem;
+          array.pop();
+        }
+
+        var changed = false;
+
+        newExpiredItems.forEach(function(item){
+          if (changed) { return; }
+          for (var i = 0; i < copy.length; i++) {
+            if (item.title === copy[i].title) {
+              return removeItem(i, copy);
+            }
+          }
+          console.log('setting sales state.')
+          context.setState({
+            expiredItems: newExpiredItems,
+            activeItems: activeItems
+          })
+          changed = true;
+        });
       }
     })
   }
@@ -48,6 +77,13 @@ export default class MyDashboard extends Component {
         var newExpiredItems = bids.filter(function(bid) {
           return bid.item.valid === false;
         })
+
+        if (newExpiredItems.length === 0) {
+          context.setState({
+            activeItems: activeItems
+          })
+        }
+
         var copy = context.state.expiredItems.slice();
 
         var removeItem = function (index, array) {
@@ -60,14 +96,16 @@ export default class MyDashboard extends Component {
         var changed = false;
 
         newExpiredItems.forEach(function(item){
+          console.log('entering the loop.')
           if (changed) {
             return;
           }
           for (var i = 0; i < copy.length; i++) {
-            if (item.title === copy[i].title) {
+            if (item.item.title === copy[i].item.title) {
               return removeItem(i, copy);
             }
           }
+          console.log('setting bid state.')
           context.setState({
             expiredItems: newExpiredItems,
             activeItems: activeItems
@@ -90,6 +128,7 @@ export default class MyDashboard extends Component {
       );
     }
     if (this.props.params.view === 'sales') {
+      console.log('rendering sales page.')
       this.getSalesItems();
       view = (
         <div className="dashboard container-fluid">
@@ -129,6 +168,7 @@ export default class MyDashboard extends Component {
       )
     }
     if (this.props.params.view === 'bids') {
+      console.log('rendering bid page.')
       this.getBidItems();
       view = (
         <div className="dashboard container-fluid">

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {Link} from 'react-router'; 
+import {Link} from 'react-router';
 import UserRating from './UserRating.jsx';
 
 export default class UserSetting extends Component {
@@ -7,17 +7,17 @@ export default class UserSetting extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      id: null,
-      firstName: null,
-      lastName: null,
-      email: null,
-      photo: null,
-      phone: null,
-      starRating: null,
-      editing: false,
-      userEmail: null,
-      userPhone: null,
-      userAddress: null,
+      id: this.props.user.id,
+      firstName: this.props.user.firstName,
+      lastName: this.props.user.lastName,
+      email: this.props.user.email,
+      photo: this.props.user.photo,
+      phone: this.props.user.phone,
+      starRating: this.props.user.starRating,
+      editing: this.props.user.editing,
+      userEmail: this.props.user.userEmail,
+      userPhone: this.props.user.userPhone,
+      userAddress: this.props.user.userAddress,
       aboutMe: ''
     };
     this.setUser = this.setUser.bind(this);
@@ -44,7 +44,7 @@ export default class UserSetting extends Component {
 
   componentWillMount() {
     const context = this;
-    $.ajax({             
+    $.ajax({
       method: 'GET',
       url: 'api/user_data',
       success: function(user) {
@@ -87,8 +87,8 @@ export default class UserSetting extends Component {
       return emailregex.test(textval);
     };
 
-    if ($('#user-email').val() === '' && setSomething === 'email') {    
-      $('.emailError').show();      
+    if ($('#user-email').val() === '' && setSomething === 'email') {
+      $('.emailError').show();
       $('.addressError').hide();
       $('.phoneError').hide();
       $('.passwordError').hide();
@@ -97,7 +97,7 @@ export default class UserSetting extends Component {
 
     if ($('#user-address').val() === '' && setSomething === 'address') {
       $('.addressError').show();
-      $('.emailError').hide();      
+      $('.emailError').hide();
       $('.phoneError').hide();
       $('.passwordError').hide();
       valid = false;
@@ -105,7 +105,7 @@ export default class UserSetting extends Component {
 
     if ($('#user-phone').val() === '' && $('#user-phone').val().length <= 6 && setSomething === 'phone') {
       $('.phoneError').show();
-      $('.emailError').hide();      
+      $('.emailError').hide();
       $('.addressError').hide();
       $('.passwordError').hide();
       valid = false;
@@ -114,7 +114,7 @@ export default class UserSetting extends Component {
     if (valid === true) {
       var stateObj = {};
       $('.phoneError').hide();
-      $('.emailError').hide();      
+      $('.emailError').hide();
       $('.addressError').hide();
       $('.passwordError').hide();
 
@@ -122,7 +122,7 @@ export default class UserSetting extends Component {
         stateObj[setSomething] = $('#user-password').val();
       }
       if (setSomething === 'email') {
-        stateObj[setSomething] = $('#user-email').val();  
+        stateObj[setSomething] = $('#user-email').val();
       }
       if (setSomething === 'address') {
         stateObj[setSomething] = $('#user-address').val();
@@ -133,7 +133,7 @@ export default class UserSetting extends Component {
 
       this.setState({user: stateObj});
 
-      var context = this;          
+      var context = this;
       $.ajax({                    //  Ajax request to update user info
         method: 'GET',
         url: 'api/user_data',
@@ -166,8 +166,8 @@ export default class UserSetting extends Component {
     s[stateToChange] = !this.state[stateToChange];
     this.setState(s);
   }
-  
-  render() {  //  On click, shows input field 
+
+  render() {  //  On click, shows input field
     // var passCheck = this.state.passWord ? <div><form onSubmit={this.handleSubmit.bind(this, 'passWord')}><input id='user-password' type='password' placeholder='Type new password' className="input-xlarge"></input>
     //                                         <button type='submit' className="setting-btn passwordBtn btn btn-primary btn-sm">Submit</button></form>
     //                                         <div className="passwordError alert alert-danger fade in" role="alert">
@@ -190,13 +190,13 @@ export default class UserSetting extends Component {
                                         </div> : '';
 
     var starRating = this.state.starRating;
-    
+
     var aboutMe = this.state.editing ?
     /* EDITING */
       <div className="row">
         <div className="row">
           <div className="input-group-md">
-            <textarea className="form-control about-me-description" name="aboutMe" value={this.state.aboutMe + ' ...'} onChange={ this.handleChangeAboutMe }/>
+            <textarea className="form-control about-me-description" name="aboutMe" value={this.state.aboutMe} onChange={ this.handleChangeAboutMe }/>
           </div>
         </div>
         <div className="row">
@@ -204,7 +204,7 @@ export default class UserSetting extends Component {
             <span>save</span>
           </button>
         </div>
-      </div> : 
+      </div> :
       /* NOT EDITING */
       <div className="row">
 
@@ -222,12 +222,12 @@ export default class UserSetting extends Component {
 
     return (
       <div style = {{margin: 100}} className="container">
-        <div className="row"> 
+        <div className="row">
           <div className="col-md-4">
               <img src={this.state.photo} alt="Oops! Can't find your photo" className="img-responsive profile-image"/>
           </div>
           <div className="col-md-4">
-          
+
             <Link to={'/profile/' + this.state.id}>
               <h3 className="account-name">{this.state.firstName} {this.state.lastName}</h3>
             </Link>
@@ -246,10 +246,10 @@ export default class UserSetting extends Component {
                   <Link to='/account' onClick={this.handleToggle.bind(this, 'phone')}><h6>Change Phone Number</h6></Link>
                   {phoneCheck}
                 </div>
-                
+
             </div>
           </div>
-        </div>  
+        </div>
 
         <div className="row account">
           <div className="col-md-4">

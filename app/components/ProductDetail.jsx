@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {browserHistory} from 'react-router';
 import {calcTime} from '../helpers.js';
 import BidNow from './BidNow.jsx'
+import {Link} from 'react-router';
 
 export default class AuctionItem extends Component {
   constructor (props) {
@@ -129,6 +130,7 @@ export default class AuctionItem extends Component {
 
   render () {
     var thisItem = this.state.item || {};
+    var sellerProfile = '/profile/' + this.state.item.userId;
 
     var startDate = new Date(Date.parse(thisItem.startDate));
 
@@ -173,6 +175,17 @@ export default class AuctionItem extends Component {
               </span>
             </div>
             : <span>Auction ended</span>
+          }
+          { this.props.user.id !== this.state.item.userId ?
+            <div>
+              Seller:
+              <Link to={sellerProfile}>
+                <span>
+                  {this.state.item.sellerName}
+                </span>
+              </Link>
+            </div>
+            : <div></div>
           }
           </div>
         { this.props.auth() && this.state.valid ?

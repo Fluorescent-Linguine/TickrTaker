@@ -28,15 +28,14 @@ export default class BidNow extends Component {
 
   sendItemBid(e) {     // Ajax request to bid on an item
     e.preventDefault();
-    console.log(e.target)
     if (this.props.currentBid === undefined || this.state.input >= this.props.currentBid + 1) {
       var context = this;
       $.ajax({
         method: 'GET',
         url: '/api/user_data',
         success: function(user) {
-          context.refs.input.value = '';
           context.postBid(user);
+          context.refs.input.value = '';
         }
       });
     } else {

@@ -8,6 +8,7 @@ import {calcTime} from '../helpers.js';
 export default class Listing extends Component {
   constructor (props) {
     super(props);
+    console.log(props)
 
     this.state = {
       status: props.status,
@@ -33,7 +34,9 @@ export default class Listing extends Component {
     });
 
     this.interval = setInterval(() => {
-      this.checkActive();
+      if (this.state.valid) {
+        this.checkActive();
+      }
       this.setState({
         timeRemaining: this.calcTime(this.state.endDate)
       });
@@ -53,17 +56,17 @@ export default class Listing extends Component {
     var context = this;
     if ( new Date() > new Date(this.state.endDate) && this.state.valid) {
 
-      console.log('Setting' + this.props.item.title + 'to not valid', context.props.item.id)
+      // Update to expired.
       $.ajax({
         method: 'PUT',
         url: '/api/expiredItem/' + context.props.item.id,
         success: (response) => {
-          console.log(response.valid, 'Response Vaild');
           context.setState({
             valid: response.valid
           })
-          console.log('is this valid?', context.state.valid)
-
+          if (context.props.rerender){
+            context.props.rerender()
+          }
         }
       })
     }
@@ -109,7 +112,7 @@ export default class Listing extends Component {
 
   render () {
     // var button;
-
+    console.log(this.props.item, this.props.item.id)
     var itemUrl = '/item/' + this.props.item.id;
     var sellerProfile = '/profile/' + this.props.item.userId;
     var seller = this.props.item.sellerName ? ' '+this.props.item.sellerName : ' Seller';

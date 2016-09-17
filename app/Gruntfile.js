@@ -12,13 +12,21 @@ module.exports = function(grunt) {
     },
     shell: {
       options: {
-        stderr: false
+        stderr: false,
+        execOptions: {
+             maxBuffer: Infinity
+        }
       },
       compile: {
         command: 'webpack'
       },
       startDevServer: {
-        command: 'node start.js'
+        command: 'node start.js',
+        options: {
+           execOptions: {
+               maxBuffer: Infinity
+           }
+       }
       },
       eslint: {
         command: 'eslint "**/*.js" "**/*.jsx"'
@@ -59,6 +67,6 @@ module.exports = function(grunt) {
   ]);
 
   grunt.registerTask('eslint', ['shell:eslint']);
-  
+
   grunt.registerTask('start', ['shell:startDevServer']);
 };

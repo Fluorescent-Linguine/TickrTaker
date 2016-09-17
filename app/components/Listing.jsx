@@ -1,0 +1,179 @@
+import React, {Component} from 'react';
+import {Link} from 'react-router';
+import BidNow from './BidNow.jsx'
+
+// This should be redundant
+import {calcTime} from '../helpers.js';
+
+export default class Listing extends Component {
+  constructor (props) {
+    super(props);
+    console.log(props)
+
+    this.state = {
+      status: props.status,
+      currentBid: '',
+      endDate: '',
+      valid: true,
+      activeBid: this.props.activeBid !== undefined ? this.props.activeBid : true,
+      id: this.props.item.id
+    };
+  }
+
+  componentWillMount() {    // Set state properties with updated values
+    this.getBids();
+    this.setState({
+      endDate: this.props.item.auctionEndDateByHighestBid,
+      timeRemaining: this.calcTime(this.props.item.auctionEndDateByHighestBid)
+    });
+  }
+
+  componentDidMount () {    //  Set state properties with calculated values
+    $('img').on('error', function(){ //  Replace broken image links with the sample image
+        $(this).attr('src', 'http://res.cloudinary.com/dijpyi6ze/image/upload/v1473715896/item_photos/zfaehmp20xculww4krs6.jpg');
+    });
+
+    this.interval = setInterval(() => {
+      if (this.state.valid) {
+        this.checkActive();
+      }
+      this.setState({
+        timeRemaining: this.calcTime(this.state.endDate)
+      });
+    }, 1000)
+    this.calcTime = this.calcTime.bind(this);
+
+    // console.log('endDate: ', new Date(this.state.endDate), 'now: ', new Date(), 'Difference in enddate and now', new Date() > new Date(this.state.endDate));
+  }
+
+  componentWillUnmount () {    // Clears up DOM elements that were created in ComponentDidMount method
+    this.interval && clearInterval(this.interval);
+    this.interval = false;
+  }
+
+  checkActive () {
+    console.log('running check active function')
+    var context = this;
+    if ( new Date() > new Date(this.state.endDate) && this.state.valid) {
+
+      // Update to expired.
+      $.ajax({
+        method: 'PUT',
+        url: '/api/expiredItem/' + context.props.item.id,
+        success: (response) => {
+          context.setState({
+            valid: response.valid
+          })
+          if (context.props.rerender){
+            context.props.rerender()
+          }
+        }
+      })
+    }
+  }
+
+  // This calculates the time remaining through a helper
+  calcTime (endDate) {
+    return calcTime(endDate);
+  }
+
+  getBids () {
+    var context = this;
+    $.ajax({
+      method: 'GET',
+      url: '/api/items/bids/' + context.props.item.id,
+      headers: {'Content-Type': 'application/json'},
+      success: function (res) {
+        var sorted = res.bids.sort(function (a, b) {
+          return a.price < b.price;
+        });
+        context.setState({
+          bids: sorted,
+          currentBid: sorted[0] ? sorted[0].price : res.endPrice,
+        });
+      }
+    })
+  }
+
+  getItem() {
+    var context = this;
+    $.ajax({
+      method: 'GET',
+      url: '/api/singleitem/' + context.props.item.id,
+      headers: {'Content-Type': 'application/json'},
+      success: function(res) {
+        context.setState({
+          endDate: res.auctionEndDateByHighestBid,
+          valid: res.valid
+        });
+      }
+    })
+  }
+
+  render () {
+    // var button;
+    console.log(this.props.item, this.props.item.id)
+    var itemUrl = '/item/' + this.props.item.id;
+    var sellerProfile = '/profile/' + this.props.item.userId;
+    var seller = this.props.item.sellerName ? ' '+this.props.item.sellerName : ' Seller';
+
+    return (
+      <div className="row">
+        <div className="col-sm-3">
+          <img className="listing-image" src={this.props.item.picture}></img>
+        </div>
+        <div className="col-sm-9">
+          <Link to={itemUrl}>
+            <h3 className="item-title">{this.props.item.title || 'Sample Title'}</h3>
+          </Link>
+          <div className="row">
+            <div className={ this.props.auth() && this.props.bidNowActive ? "col-md-7 listing-content" : "col-md-12 listing-content"}>
+              {this.state.activeBid ?
+                <div>
+                  Current highest bid:
+                  <span className="current-price">
+                    {' $' + this.state.currentBid}
+                  </span>
+                </div>
+                :
+                <div>
+                  Price sold:
+                  <span className="current-price">
+                    {' $' + this.state.currentBid}
+                  </span>
+                </div>
+              }
+              {this.state.activeBid ?
+                <div>
+                  Time remaining:
+                  <span className="time-remaining">
+                    {' ' + this.state.timeRemaining}
+                  </span>
+                </div>
+                : <span></span>
+              }
+              { (this.state.status !== 'forsale' && this.props.auth() ) ?
+              <div>
+                Seller:
+                <Link to={sellerProfile}>
+                  <span>
+                    { seller }
+                  </span>
+                </Link>
+              </div> : <div></div> }
+            </div>
+          { this.props.auth() && this.props.bidNowActive ?
+            <div className="col-md-5">
+              <BidNow
+              getItem={this.getItem.bind(this)}
+              getBids={this.getBids.bind(this)}
+              currentBid={this.state.currentBid}
+              item={this.props.item} />
+            </div>
+              : <div></div> }
+          </div>
+        </div>
+      </div>
+    )
+  }
+}

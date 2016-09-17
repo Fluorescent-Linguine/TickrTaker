@@ -2,14 +2,14 @@ var moment = require('moment');
 var nodemailer = require('nodemailer');
 var transporter = nodemailer.createTransport('smtps://automated.tickrtaker%40gmail.com:ticktock@smtp.gmail.com');
 module.exports = (db, Sequelize, User) => {
-  
+
   //  CREATED A DEFAULT ENDING DATE FOR TESTING WITH DUMMY DATA.
   //  Can change end date default for dummy data to test features, follows
   //  moment.js syntax.
 
   endDateDefault = moment().add(600, 'seconds');
   // console.log(endDateDefault);
-  
+
   //  DEFINED ITEM MODEL. Currently, minimum bid increment defaults to $1.00
   //  and we don't have a way to change it from client side. FEATURE TO IMPLEMENT.
 
@@ -23,7 +23,8 @@ module.exports = (db, Sequelize, User) => {
     endPrice: {type: Sequelize.FLOAT, allowNull: false},
     minimumBidIncrement: {type: Sequelize.FLOAT, defaultValue: 1},
     auctionEndDateByHighestBid: {type: Sequelize.DATE, allowNull: false, defaultValue: endDateDefault},
-    valid: {type: Sequelize.BOOLEAN, defaultValue: true}
+    valid: {type: Sequelize.BOOLEAN, defaultValue: true},
+    sellerName: Sequelize.TEXT
   });
 
   //  INTERVAL CHECK. Will flip valid from true to false if item has expired.
@@ -43,9 +44,9 @@ module.exports = (db, Sequelize, User) => {
             //  get the bids on the item, find the highest bid, and get the highest bidder.
             aCurrentItem.getBids({raw: true})
             .then(function(bids) {
-              
+
               var highestBid = {price: 0};
-              
+
               bids.forEach(function(bid) {
                 if (bid.price > highestBid.price) {
                   highestBid = bid;
@@ -54,9 +55,9 @@ module.exports = (db, Sequelize, User) => {
               //  Send emails out.
               User.find({where: {id: highestBid.userId}, raw: true})
               .then(function(highestBidder) {
-              
+
                 var sellerText;
-                
+
                 if (highestBidder === null) {
                   sellerText = 'Sorry, no one bid on your item. Better luck next time.';
                 } else {
@@ -99,10 +100,13 @@ module.exports = (db, Sequelize, User) => {
       console.log(err);
     });
   };
-  
-  //  interval to check for valid items and send out emails. 
 
-  setInterval(checkValidItems, 10000);
+  //  interval to check for valid items and send out emails.
+
+
+/*****************************************************************************/
+  checkValidItems();
+  // setInterval(checkValidItems, 10000);
 
 
   //  get all valid items by search query.
@@ -137,38 +141,75 @@ module.exports = (db, Sequelize, User) => {
       console.log(err);
     });
   };
-  
+
   //  get all items that user has for sale.
 
   const getItemsForSale = (req, res, next) => {
-    if (req.body.user === undefined) { 
+    var id = req.params.id;
+    if (id === undefined) {
       res.send('user undefined');
       return;
     }
-    User.findOne({where: {id: req.body.user.id}})
+
+    User.findOne({where: {id: id }})
     .then(function(user) {
       user.getItems({where: {valid: true}, raw: true})
       .then(function(items) {
-        console.log(items);
         res.send(items);
-      });  
+      });
+    }).catch(function(err) {
+      console.log(err);
+    });
+  };
+
+  const getMyItemsForSale = (req, res, next) => {
+    var id = req.user.dataValues.id;
+    console.log('GETTING MY OWN SHIT', id);
+    if (id === undefined) {
+      res.send('user undefined');
+      return;
+    }
+
+    User.findOne({where: {id: id }})
+    .then(function(user) {
+      user.getItems({raw: true})
+      .then(function(items) {
+        res.status(200).json(items);
+      });
     }).catch(function(err) {
       console.log(err);
     });
   };
 
   const getOldItemsForSale = (req, res, next) => {
-    if (req.body.user === undefined) { 
+    var id = req.user.dataValues.id;
+    if (id === undefined) {
       res.send('user undefined');
       return;
     }
-    User.findOne({where: {id: req.body.user.id}})
+    User.findOne({where: {id: id}})
     .then(function(user) {
       user.getItems({where: {valid: false}, raw: true})
       .then(function(items) {
-        console.log(items);
         res.send(items);
-      });  
+      });
+    }).catch(function(err) {
+      console.log(err);
+    });
+  };
+
+  const getMyOldItemsForSale = (req, res, next) => {
+    var id = req.params.id;
+    if (id === undefined) {
+      res.send('user undefined');
+      return;
+    }
+    User.findOne({where: {id: id}})
+    .then(function(user) {
+      user.getItems({where: {valid: false}, raw: true})
+      .then(function(items) {
+        res.send(items);
+      });
     }).catch(function(err) {
       console.log(err);
     });
@@ -193,24 +234,25 @@ module.exports = (db, Sequelize, User) => {
   //  Place an item for sale.
 
   const putItemForSale = (req, res, next) => {
-    if (req.body.item === undefined) { 
+    if (req.body.item === undefined) {
       res.send('item undefined');
       return;
     }
 
     //  Check if item is valid
-    
+
     if (validateItem(req.body.item)) {
       console.log('a valid item has been passed');
       //  Grab user from body, then assign autionEndDateByHighestBid to the end date of the item.
       User.findOne({where: {id: req.body.user.id}})
       .then(function(user) {
         req.body.item.auctionEndDateByHighestBid = req.body.item.endDate;
+        req.body.item.sellerName = user.firstName + ' ' + user.lastName;
         Item.create(req.body.item)
           .then(function(item) {
             user.addItem(item);
             res.send('created new item');
-          }); 
+          });
       }).catch(function(err) {
         console.log(err);
       });
@@ -240,13 +282,30 @@ module.exports = (db, Sequelize, User) => {
     });
   };
 
+  const expiredItem = (req, res, next) => {
+    var id = req.params.itemId;
+    Item.findOne({where: {id: id} })
+    .then(function(item) {
+      item.updateAttributes({
+        valid: false
+      });
+      res.send(item);
+    }).catch(function(err) {
+      console.log(err);
+    });
+    // res.send('whoa'  );
+  };
+
   return {
     Item: Item,
     getItemsForSale: getItemsForSale,
     getOldItemsForSale: getOldItemsForSale,
+    getMyOldItemsForSale: getMyOldItemsForSale,
     getAllItems: getAllItems,
     putItemForSale: putItemForSale,
     removeItemFromSale: removeItemFromSale,
-    getOneItem: getOneItem
+    getOneItem: getOneItem,
+    expiredItem: expiredItem,
+    getMyItemsForSale: getMyItemsForSale
   };
 };

@@ -1,7 +1,6 @@
 // var db = require('./db/index.js');
 
 module.exports = (app, db) => {
-
   //USERS ENDPOINT
 
   // app.post('/signup', (req, res) => {
@@ -21,6 +20,11 @@ module.exports = (app, db) => {
     db.ItemController.getOneItem(req, res, next, req.params.itemId);
   });
 
+  app.put('/api/expiredItem/:itemId', (req, res, next) => {
+    console.log('SELLER ID @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@', req.params);
+    db.ItemController.expiredItem(req, res, next);
+  });
+
   app.get('/api/items/bids/:itemId', (req, res, next) => {
     db.BidController.getBidsForItem(req, res, next, req.params.itemId);
   });
@@ -31,7 +35,7 @@ module.exports = (app, db) => {
   });
 
   app.delete('/api/items/bids/:itemId', (req, res, next) => {
-    db.BidController.removeBidFromItem(req, res, next, req.params.itemId);  
+    db.BidController.removeBidFromItem(req, res, next, req.params.itemId);
     // res.send('DELETE /api/bids');
   });
 
@@ -39,14 +43,25 @@ module.exports = (app, db) => {
     db.ItemController.getAllItems(req, res, next);
   });
 
-  app.post('/api/selleritems', (req, res, next) => {
-    // console.log('request body******', req.body);
+  app.get('/api/selleritems/:id', (req, res, next) => {
+    // for profile page
     db.ItemController.getItemsForSale(req, res, next);
     // res.send('GET /api/items');
   });
 
-  app.post('/api/oldselleritems', (req, res, next) => {
+  app.get('/api/mysales', (req, res, next) => {
+    db.ItemController.getMyItemsForSale(req, res, next);
+    // res.send('GET /api/items');
+  });
+
+  app.get('/api/oldselleritems', (req, res, next) => {
+    // console.log('SELLER ID @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@', req.user.dataValues.id);
     db.ItemController.getOldItemsForSale(req, res, next);
+  });  
+
+  app.get('/api/oldselleritems/:id', (req, res, next) => {
+    // console.log('SELLER ID @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@', req.user.dataValues.id);
+    db.ItemController.getMyOldItemsForSale(req, res, next);
   });
 
   app.post('/api/items', (req, res) => {
@@ -60,8 +75,8 @@ module.exports = (app, db) => {
 
   //BIDS ENDPOINT
 
-  app.post('/api/bids', (req, res, next) => {
-    console.log('***************', req.body);
+  app.get('/api/bids', (req, res, next) => {
+    console.log('***************', req.user.dataValues.id);
     db.BidController.getBidsForSeller(req, res, next);
   });
 
@@ -71,14 +86,29 @@ module.exports = (app, db) => {
 
   app.get('/api/user_data', function(req, res) {
     if (req.user === undefined) {
-      // The user is not logged in
       res.json({});
     } else {
-      console.log('THIS IS HAPPENING');
       res.json({
         user: req.user
       });
     }
+  });
+
+  app.get('/api/profile/:id', function(req, res) {
+    var authenticated = req.user ? true : false;
+    db.UserController.getProfile(req, res, authenticated);
+  });
+
+
+  app.post('/api/profile/rateUser/:id', function(req, res) {
+    var authenticated = req.user ? true : false;
+    res.send(req.body);
+    db.UserController.rateSeller(req, res, authenticated);
+  });
+
+  app.post('/api/account/aboutMe/', function(req, res) {
+    var authenticated = req.user ? true : false;
+    db.UserController.saveAboutMe(req, res, authenticated);
   });
 
 };

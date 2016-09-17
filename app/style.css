@@ -133,7 +133,7 @@ h2.item-title {
 .product-profile-image > img {
   border-radius: 6px;
   border: 1px black solid;
-  max-width: 250px;
+  max-width: 100%;
   max-height: 200px;
 }
 

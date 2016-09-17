@@ -5,7 +5,12 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
     shell: {
       dev: {
-        command: 'export NODE_ENV=development && nodemon app.js'
+        command: 'export NODE_ENV=development && nodemon app.js',
+        options: {
+           execOptions: {
+               maxBuffer: Infinity
+           }
+       }
       },
       prod: {
         command: 'export NODE_ENV=production && nodemon -q app.js > .logs'
@@ -19,6 +24,6 @@ module.exports = function(grunt) {
 //tasks
 
   grunt.registerTask('dev', ['shell:dev']);
-  
+
   grunt.registerTask('prod', ['shell:prod']);
 };

@@ -58,7 +58,7 @@ db.sync({force: true})
       photo: 'https://scontent.xx.fbcdn.net/v/t1.0-1/s200x200/10417550_10103418587420213_3389328959999895776_n.jpg?oh=619920945e4f741f2f31ef321bd5d98b&oe=58720745',
       numberOfRatings: 20,
       email: 'julkie17@gmail.com',
-      aboutMe: 'im awesome'
+      aboutMe: 'My about me is filled in with stuff'
     })
     .then(function(seller) {
       var rightNow = new Date();
@@ -81,7 +81,7 @@ db.sync({force: true})
         picture: 'http://vignette4.wikia.nocookie.net/pokemon/images/5/5f/025Pikachu_OS_anime_11.png/revision/latest?cb=20150717063951',
         startPrice: 10000.00,
         endPrice: 100.00,
-        endDate: '2016-09-13T00:00Z',
+        // endDate: '2016-09-13T00:00Z',
         auctionEndDateByHighestBid: '2016-09-13T00:00Z',
         valid: false
       }).then(function (item) {
@@ -94,7 +94,7 @@ db.sync({force: true})
         picture: 'http://res.cloudinary.com/dijpyi6ze/image/upload/v1473717852/item_photos/vx7mzeluumrn1qngrnia.jpg',
         startPrice: 10000000.00,
         endPrice: 1.00,
-        endDate: '2016-09-20T17:00Z',
+        // endDate: '2016-09-20T17:00Z',
         auctionEndDateByHighestBid: '2016-09-20T17:00Z'
       }).then(function (item) {
         seller.addItem(item);

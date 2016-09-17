@@ -85,6 +85,7 @@ h3 {
 .item-title {
   font-family: 'Copse', serif;
   color: black;
+  text-align: center;
 }
 
 h2.item-title {
@@ -457,6 +458,7 @@ hr {
   text-align: left;
 }
 
+
 .star-rating {
   padding: 7%;
   margin-top: 3%;
@@ -467,6 +469,7 @@ hr {
 
 .stars {
   max-width: 200px;
+  margin: auto;
 }
 
 .current-rating {
@@ -475,12 +478,16 @@ hr {
 }
 
 .account-name {
-  padding-left: 22px;
+  text-align: center;
 }
 
 textarea.about-me {
   font-size: 13px;
   max-width: 100%;
+}
+
+.account-input {
+  font-size: 13px;
 }
 
 .about-me {
